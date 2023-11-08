@@ -8,6 +8,8 @@ import { deepFind } from '../utility/deepFind';
 class VideoCreatorStore {
   preview?: Preview = undefined;
 
+  isReady: Boolean = false;
+
   state?: PreviewState = undefined;
 
   tracks?: Map<number, ElementState[]> = undefined;
@@ -26,6 +28,8 @@ class VideoCreatorStore {
 
   isScrubbing = false;
 
+  videoSource: any;
+
   constructor() {
     makeAutoObservable(this);
   }
@@ -41,7 +45,7 @@ class VideoCreatorStore {
     this.preview = preview;
 
     preview.onReady = async () => {
-      await preview.setSource(this.getDefaultSource());
+      this.isReady = true;
     };
 
     preview.onLoad = async () => {
@@ -265,6 +269,24 @@ class VideoCreatorStore {
 
   private updateTracks() {
     this.tracks = groupBy(this.getActiveCompositionElements(), (element) => element.track);
+  }
+  
+  updateVideoSource(newSourceJson: string) {
+    try {
+      // Assuming newSourceJson is a JSON string representation of your video source
+      const newSource: PreviewState = JSON.parse(newSourceJson);
+
+      // Update the videoSource observable with the new source
+      this.videoSource = newSource;
+
+      // If you need to update the preview with the new source, you can do so here
+      if (this.preview) {
+        this.preview.setSource(newSource);
+      }
+    } catch (error) {
+      // Handle any errors that may occur during parsing or updating the source
+      console.error('Failed to update video source:', error);
+    }
   }
 
   private getDefaultSource() {
